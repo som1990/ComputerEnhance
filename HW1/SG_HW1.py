@@ -1,3 +1,15 @@
+""" HW1 for the Performance aware programming course (https://www.computerenhance.com/)
+
+A simple testbed for disassembling 8086 set of instructions. 
+Takes in a binary file from the 8086 format and decodes it to relavant x86 assembly code
+Referenced from 8086 Family User Manual 
+
+In this Module it decodes a simple MOV instruction of the "Register to Register" flavor.
+Reference Page: 4-22
+
+Author: Soumitra Goswami 
+"""
+
 from __future__ import annotations
 import struct
 import typing as t
@@ -39,7 +51,7 @@ reg_field[0b111] = ['BH', 'DI']
 mod_table = dict()
 mod_table[0b11] = reg_field 
 
-def disassemble_CPU8086(bin_path: str, out_path : t.Optional[str] = None) -> str:
+def disassemble_CPU8086(bin_path: str, out_path : t.Optional[str] = None):
     
     out_path = out_path or bin_path + '_out.asm'
     bin_data = b''
@@ -91,7 +103,7 @@ def disassemble_CPU8086(bin_path: str, out_path : t.Optional[str] = None) -> str
 
 
 
-path = r"D:\Work\Courses\ComputerEnhance\HW_Lst_37_ComputerEnhance"
-#path = r"D:\Work\Courses\ComputerEnhance\HW_Lst_38_MultipleInstructions"
+path = r".\HW1\HW_Lst_37_ComputerEnhance"
+#path = r".\HW1\HW_Lst_38_MultipleInstructions"
 out_path = path + '_out.asm'
 disassemble_CPU8086(path, out_path)

@@ -1,32 +1,18 @@
+"""HW2 for the Performance aware programming course (https://www.computerenhance.com/)
+
+A simple testbed for disassembling 8086 set of instructions. 
+Takes in a binary file from the 8086 format and decodes it to relavant x86 assembly code
+Referenced from 8086 Family User Manual 
+
+In this module we add support for further flavors of the MOV instruction (minus the Segment Register ) 
+
+Author: Soumitra Goswami 
+"""
+
 from __future__ import annotations
 import struct
 import typing as t
 from pathlib import Path
-
-"""
-Typical 8086/8088 Machine Instruction Format
-
-Byte 1
-OPCode                                              - 6 bits
-Direction of register (D)                           - 1 bit
-is wide format (W)                                  - 1 bit
-
-Byte 2
-Register/Memory Mode (MOD)                          - 2 bits
-Register Operand extension of OPCode (REG)          - 3 bits
-Register Operand Register to use in EA calcs (R/M)  - 3 bits
-
-"""
-
-
-# OP Tables
-op_datas = [0b100010]
-
-op_table = dict()
-# MOV instruction Codes
-op_table["MOV"] = [0b1011, 0b100010, 0b1100011, 0b1010000, 0b1010001]
-
-
 
 # Registry Tables
 reg_field = [None]*8
@@ -58,6 +44,10 @@ mod_table[0b01] = encode_address
 mod_table[0b10] = encode_address
 
 def decode_mod(buf:bytes, buff_off:int, mod_code:int, rm_field:int, is_wide:int)->t.Tuple(str, int):
+    """Decoding MOD field of the instruction set. 
+       Reference Manual: Intel 8086 Family User's Manual October 1979
+       Reference page: 4-20
+    """
     new_offset=buff_off
     if mod_code > 3:
             raise KeyError(f"{mod_code} not implemented in mod_table")
@@ -88,7 +78,12 @@ def decode_mod(buf:bytes, buff_off:int, mod_code:int, rm_field:int, is_wide:int)
 
     return decode_str, new_offset
 
+# INSTRUCTION SETS 
 def mov_between_mem_and_reg(buf:bytes, buf_off:int)->t.Tuple(str, int):
+    """Reference Manual: Intel 8086 Family User's Manual October 1979
+       Reference page: 4-22 MOV instruction
+    """
+
     '''
     Byte 1
     OPCode                                              - 6 bits
@@ -137,6 +132,9 @@ def mov_between_mem_and_reg(buf:bytes, buf_off:int)->t.Tuple(str, int):
     return output, new_offset
 
 def mov_immediate_to_reg_or_memory(buf:bytes, buf_off:int)->t.Tuple(str, int):
+    """Reference Manual: Intel 8086 Family User's Manual October 1979
+       Reference page: 4-22 MOV instruction
+    """
     '''
     BYTE 1
     OP_CODE (1100011)                                   - 7 bits
@@ -181,6 +179,9 @@ def mov_immediate_to_reg_or_memory(buf:bytes, buf_off:int)->t.Tuple(str, int):
     return output, new_offset
 
 def mov_immediate_to_reg(buf:bytes, buf_off:int)->t.Tuple(str, int):
+    """Reference Manual: Intel 8086 Family User's Manual October 1979
+       Reference page: 4-22 MOV instruction
+    """
     '''
     BYTE 1
     OP_CODE (1011)                                  - 4 bits
@@ -213,6 +214,13 @@ def mov_immediate_to_reg(buf:bytes, buf_off:int)->t.Tuple(str, int):
     return output, new_offset
 
 def mov_mem_to_accum(buf:bytes, buf_off:int)->t.Tuple(str, int):
+    """Reference Manual: Intel 8086 Family User's Manual October 1979
+       Reference page: 4-22 MOV instruction
+    """
+    '''
+    BYTE 1
+    OP_CODE(1010000)
+    '''
     print("I'm doing mov from memory to accumilator")
     new_offset = buf_off
     buffer = struct.unpack_from('B', buf, offset=new_offset)
@@ -234,13 +242,16 @@ def mov_mem_to_accum(buf:bytes, buf_off:int)->t.Tuple(str, int):
     return output, new_offset
 
 def mov_accum_to_mem(buf:bytes, buf_off:int)->t.Tuple(str, int):
+    """Reference Manual: Intel 8086 Family User's Manual October 1979
+       Reference page: 4-22 MOV instruction
+    """
     print("I'm doing mov from accumilator to memory")
     new_offset= buf_off
     buffer = struct.unpack_from('B', buf, offset=new_offset)
     new_offset += 1
 
     is_wide = (buffer[0]) & 1
-    print(f"Byte1: Opcode={bin(0b1010000)}, is_wide={is_wide}")
+    print(f"Byte1: Opcode={bin(0b1010001)}, is_wide={is_wide}")
 
 
     src_decode = "ax"
@@ -254,8 +265,9 @@ def mov_accum_to_mem(buf:bytes, buf_off:int)->t.Tuple(str, int):
     output = f"MOV {dest_decode}, {src_decode}\n"
     return output, new_offset
     
-
+# Function tables
 op_funcs = dict()
+# MOV instruction flavors
 op_funcs[0b1011] = mov_immediate_to_reg
 op_funcs[0b100010] = mov_between_mem_and_reg
 op_funcs[0b1100011] = mov_immediate_to_reg_or_memory
@@ -263,6 +275,8 @@ op_funcs[0b1010000] = mov_mem_to_accum
 op_funcs[0b1010001] = mov_accum_to_mem 
 
 def decode_opcode(buf:bytes):
+    """Since opcodes vary from 3 bit to 8 bits. A simple way to decode the opcode to it's relevant instructions
+    """
     decoded_func = None
     for i in range(6):
         temp_code = buf>>(5-i)
@@ -272,8 +286,10 @@ def decode_opcode(buf:bytes):
     return decoded_func
 
 
-def disassemble_CPU8086(bin_path: str, out_path : t.Optional[str] = None) -> str:
+def disassemble_CPU8086(bin_path: str, out_path : t.Optional[str] = None):
+    ''' A simple disassembler of limited 8086 set of instruction
     
+    '''
     out_path = out_path or bin_path + '_out.asm'
     bin_data = b''
     with open(bin_path, "rb") as f:
@@ -314,7 +330,3 @@ path = r"D:\Work\Courses\ComputerEnhance\HW2\HW_Lst_40"
 #path = r"D:\Work\Courses\ComputerEnhance\HW1\HW_Lst_38_MultipleInstructions"
 out_path = path + '_out.asm'
 disassemble_CPU8086(path, out_path)
-
-#opcode = 0b10001010
-
-#print(decode_opcode(opcode))
