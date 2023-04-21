@@ -1,0 +1,16 @@
+; HW_Lst_39
+bits 16
+MOV SI, BX
+MOV DH, AL
+MOV CX, 12
+MOV CX, -12
+MOV DX, 3948
+MOV DX, -3948
+MOV AL, [BX + SI]
+MOV BX, [BP + DI]
+MOV DX, [BP]
+MOV AH, [BX + SI + 4 ]
+MOV AL, [BX + SI + 4999 ]
+MOV [BX + DI], CX
+MOV [BP + SI], CL
+MOV [BP], CH
