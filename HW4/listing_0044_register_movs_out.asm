@@ -1,0 +1,14 @@
+; listing_0044_register_movs
+bits 16
+MOV AX, 1
+MOV BX, 2
+MOV CX, 3
+MOV DX, 4
+MOV SP, AX
+MOV BP, BX
+MOV SI, CX
+MOV DI, DX
+MOV DX, SP
+MOV CX, BP
+MOV BX, SI
+MOV AX, DI
