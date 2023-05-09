@@ -524,7 +524,6 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, arith_op:
 
     # calc overflow flag
     """ Truth Table Overflow flag 
-    
     (FOR ADD)
     src     dest    res     expected    Notes                           
     0       0       0       0           (+a) + (+b) = (+c)
@@ -559,6 +558,7 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, arith_op:
     res_hex = hex(res)
     dest_hex = hex(val_dest)
     """
+    # TODO: FIND a way to remove branching
     sign_bit_src = (usgn_src >> most_significant_bit) & 1
     sign_bit_dest = (usgn_dest >> most_significant_bit) & 1 
     sign_bit_res = (usgn_res >> most_significant_bit) & 1
@@ -571,17 +571,42 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, arith_op:
     
     flags_new = (flags_new & ~mask) | (int(overflow_flag) << flag_bit_positions['O'])
     
-    """ Truth Table Auxilary Flag
-    5th bit and 4th bit
-    dest    src     res     Notes
-    01      01      10      Auxilary
-    10      00      01      
-    11      11
+    """ Understanding Auxilary Flag
+    5th bit Truth Table
+    dest    src     res     AF
+    0       0       0       0
+    0       0       1       1
+    0       1       0       1     
+    0       1       1       0
+    1       0       0       1
+    1       0       1       0
+    1       1       0       0
+    1       1       1       1
+
     """
     mask = 1 << flag_bit_positions['A']
     auxilary_flag = ((val_src ^ val_dest ^ res) & 0b10000) != 0
     flags_new = (flags_new & ~mask) | (int(auxilary_flag) << flag_bit_positions['A'])
     
+    """ Undesrtanding Carry Flag
+    The requirement changes for additions and subtractions
+    TODO: Find a way to remove the branching
+    (ADD Carry Out)
+    8th/16th bit truth table
+    
+    dest(a) src(b)  res(r)  CF      Notes
+    0       0       0       0       small numbers being added not large enough for 8th/16th bit            
+    0       0       1       0       small numbers added turning on the 8th/16th bit            
+    0       1       0       1       CARRY. Overflow of the 8th/16th bit.      
+    0       1       1       0       Numbers being added not overflowing.
+    1       0       0       0       CARRY. Overflow of the 8th/16th bit.  
+    1       0       1       0       Number being added not overflowing.      
+    1       1       0       1       CARRY. Numbers being added causing overflow 
+    1       1       1       1       Will always overflow as two sign bit numbers added.
+    
+    SUB (Carry in/Borrow)
+    Its simple. In a-b, if b > a its a borrow. 
+    """
     mask = 1 << flag_bit_positions['C']
     if arith_op % 2 == 0:
         carry_flag = res >= 2**(most_significant_bit+1)
