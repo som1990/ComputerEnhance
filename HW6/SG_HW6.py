@@ -1,12 +1,13 @@
-"""HW2 for the Performance aware programming course (https://www.computerenhance.com/)
+f"""HW2 for the Performance aware programming course (https://www.computerenhance.com/)
 
 A simple testbed for disassembling 8086 set of instructions. 
 Takes in a binary file from the 8086 format and decodes it to relavant x86 assembly code
 Referenced from 8086 Family User Manual 
 
-Supported
-Decoding complete flavors of : MOV, conditional Jumps, ADD, ADC, SUB, SBB, CMP
-Simming of non-memory MOVs, ADD, SUB, CMP. Conditional JUMPs
+Supported:
+-Decoding complete flavors of : MOV, conditional Jumps, ADD, ADC, SUB, SBB, CMP
+-Simming of non-memory MOVs, ADD, SUB, CMP. JNZ
+-Implementation of the IP register.
  
 Author: Soumitra Goswami 
 """
