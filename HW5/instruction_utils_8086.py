@@ -666,7 +666,8 @@ def arith_sim(src_decode:Address, dest_decode:Address, mem_layout:MemoryLayout80
         bit_mask = 0xff00 if dest_is_high else 0x00ff
         src_val = src_val << 8 if dest_is_high else src_val
         new_val = (old_reg_val & ~(bit_mask))  + (new_val & bit_mask)
-    
+       
+    # Do not set value if it's a CMP operator (0b111). 
     if arith_opcode != 0b111:
         mem_layout.registers[dest_reg['pos']] = new_val & (2**(8*dest_nbytes) - 1)
 

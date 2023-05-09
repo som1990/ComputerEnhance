@@ -1,16 +1,16 @@
 ; listing_0046_add_sub_cmp
 MOV BX, -4093 ; BX:0x0000->-0xffd 
 MOV CX, 3841 ; CX:0x0000->0x0f01 
-SUB BX, CX;BX:-0xffd->-0x1efe flags: ->S  
+SUB BX, CX; BX:-0xffd->0xe102 flags: ->CS  
 MOV SP, 998 ; SP:0x0000->0x03e6 
 MOV BP, 999 ; BP:0x0000->0x03e7 
-CMP BP, SP;BP:0x03e7->0x03e7 flags: S->  
-ADD BP, 1027;BP:0x03e7->0x07ea  
-SUB BP, 2026;BP:0x07ea->0x0000 flags: ->PZ  
+CMP BP, SP; flags: CS->  
+ADD BP, 1027; BP:0x03e7->0x07ea  
+SUB BP, 2026; BP:0x07ea->0x0000 flags: ->PZ  
 
 Final Registers: 
 		AX: 0x0000 (0) 
-		BX: -0x1efe (-7934) 
+		BX: 0xe102 (57602) 
 		CX: 0x0f01 (3841) 
 		DX: 0x0000 (0) 
 		SP: 0x03e6 (998) 
