@@ -1,0 +1,10 @@
+; listing_0046_add_sub_cmp
+bits 16
+MOV BX, -4093
+MOV CX, 3841
+SUB BX, CX
+MOV SP, 998
+MOV BP, 999
+CMP BP, SP
+ADD BP, 1027
+SUB BP, 2026

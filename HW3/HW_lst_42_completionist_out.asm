@@ -1,4 +1,4 @@
-; HW_lst_42_completionist
+; HW_Lst_42_completionist
 bits 16
 MOV SI, BX
 MOV DH, AL
@@ -19,8 +19,8 @@ MOV [BP], CH
 MOV AX, [BX + DI - 37]
 MOV [SI - 300], CX
 MOV DX, [BX - 32]
-MOV [BP + DI], byte 7
-MOV [DI + 901], word 347
+MOV byte [BP + DI], 7
+MOV word [DI + 901], 347
 MOV BP, [5]
 MOV BX, [3458]
 MOV AX, [2555]

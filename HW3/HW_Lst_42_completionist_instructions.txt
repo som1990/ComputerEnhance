@@ -1,0 +1,38 @@
+; HW_Lst_42_completionist
+MOV SI, BX ; SI:0x0000->0x0000 
+MOV DH, AL ; DH:0x0000->0x0000 
+MOV CL, 12 ; CL:0x0000->0x000c 
+MOV CH, -12 ; CH:0x000c->0xf40c 
+MOV CX, 12 ; CX:0xf40c->0x000c 
+MOV CX, -12 ; CX:0x000c->-0x00c 
+MOV DX, 3948 ; DX:0x0000->0x0f6c 
+MOV DX, -3948 ; DX:0x0f6c->-0xf6c 
+MOV AL, [BX + SI]
+MOV BX, [BP + DI]
+MOV DX, [BP]
+MOV AH, [BX + SI + 4]
+MOV AL, [BX + SI + 4999]
+MOV [BX + DI], CX
+MOV [BP + SI], CL
+MOV [BP], CH
+MOV AX, [BX + DI - 37]
+MOV [SI - 300], CX
+MOV DX, [BX - 32]
+MOV BP, [5]
+MOV BX, [3458]
+
+Final Registers: 
+		AX: 0x0000 (0) 
+		BX: 0x0000 (0) 
+		CX: -0x00c (-12) 
+		DX: -0xf6c (-3948) 
+		SP: 0x0000 (0) 
+		BP: 0x0000 (0) 
+		SI: 0x0000 (0) 
+		DI: 0x0000 (0) 
+		ES: 0x0000 (0) 
+		CS: 0x0000 (0) 
+		SS: 0x0000 (0) 
+		DS: 0x0000 (0) 
+Flags: 
+
