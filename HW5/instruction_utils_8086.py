@@ -493,7 +493,7 @@ def mov_accum_to_mem(buf:bytes, buf_off:int, mem_layout:MemoryLayout8086)->t.Tup
     return output, new_offset, sim_out
 
 
-def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, n_bytes: t.Optional[int] = 2)->t.Tuple[bytes,str]:
+def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, arith_op:bytes, n_bytes: t.Optional[int] = 2)->t.Tuple[bytes,str]:
     # Generate flags
     flags_old = flags
     flags_str_old = serialize_flags(flags_old)
@@ -553,8 +553,10 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, n_bytes: 
     
     mask = 1 << flag_bit_positions['O']
 
-
-    overflow_flag = ((~sign_bit_src ^ sign_bit_dest) & (sign_bit_dest ^ sign_bit_res)) & 1 
+    if arith_op % 2 == 0:
+        overflow_flag = ((~sign_bit_src ^ sign_bit_dest) & (sign_bit_dest ^ sign_bit_res)) & 1 
+    else:
+        overflow_flag =  ((sign_bit_src^sign_bit_dest) & ~(sign_bit_src ^ sign_bit_res)) & 1
     
     flags_new = (flags_new & ~mask) | (int(overflow_flag) << flag_bit_positions['O'])
     mask = 1 << flag_bit_positions['A']
@@ -564,7 +566,11 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, n_bytes: 
     flags_new = (flags_new & ~mask) | (int(auxilary_flag) << flag_bit_positions['A'])
     
     mask = 1 << flag_bit_positions['C']
-    carry_flag = (((sign_bit_src | sign_bit_dest) & ~sign_bit_res) | (sign_bit_src & sign_bit_dest)) & 1
+    if arith_op % 2 == 0:
+        carry_flag = res >= 2**(most_significant_bit+1)
+    else:
+        carry_flag = val_src > val_dest
+    #carry_flag = (((sign_bit_src | sign_bit_dest) & ~sign_bit_res) | (sign_bit_src & sign_bit_dest)) & 1
     flags_new = (flags_new & ~mask) | (int(carry_flag) << flag_bit_positions['C'])
 
     flags_str_new = serialize_flags(flags_new)
@@ -629,7 +635,7 @@ def arith_sim(src_decode:Address, dest_decode:Address, mem_layout:MemoryLayout80
 
     
 
-    mem_layout.flags, flags_str = set_flags(mem_layout.flags, new_val, old_reg_val, src_val , dest_nbytes)
+    mem_layout.flags, flags_str = set_flags(mem_layout.flags, new_val, old_reg_val, src_val , arith_opcode, dest_nbytes)
     reg_activity = ""
     if arith_opcode != 0b111:
         reg_activity=f"{dest_decode}:{old_reg_val:#06x}->{mem_layout.registers[dest_reg['pos']]:#06x} "  
