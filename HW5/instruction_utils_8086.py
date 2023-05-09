@@ -2,9 +2,8 @@
 Supported:
 Decoding complete flavors of : MOV, conditional Jumps, ADD, ADC, SUB, SBB, CMP
 Simming of non-memory MOVs.
+Implementation of flags for Carry(C), Auxilary Overflow(A), Overflow(O), Parity (P), Sign (S), Zero (Z). 
 
-In this module we added Simming of non-memory MOV operations. We refactored the code to 
-pass along data structs. We maintain the instruction class for easy access this way. 
 
 Author: Soumitra Goswami
 
@@ -497,12 +496,13 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, arith_op:
     # Generate flags
     flags_old = flags
     flags_str_old = serialize_flags(flags_old)
+    # Because Python is silly and binary values of negative numbers are negative(Does not set the sign bit)
     most_significant_bit = 8 * n_bytes - 1;
     usgn_src = val_src if val_src >= 0 else (-val_src + 2**most_significant_bit)  
     usgn_dest = val_dest if val_dest >=0 else (-val_dest + 2**most_significant_bit)
     usgn_res = res if res >=0 else (-res + 2**most_significant_bit)
-
     flags_new = flags_old
+    
     # Parity Flag Calculation
     mask = 1 << flag_bit_positions['P']
     low_nibble = usgn_res & 0xff
@@ -511,9 +511,9 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, arith_op:
     parity_flag = parity_flag ^ (parity_flag >> 4)
     parity_flag = (~parity_flag) & 1
     flags_new = (flags_new & ~mask) | (parity_flag << flag_bit_positions['P'])
+    
     # setting sign flag
     mask= 1 << flag_bit_positions['S']
-    
     sign_flag = (usgn_res >> most_significant_bit) & 1
     flags_new = (flags_new & ~mask) | (sign_flag << flag_bit_positions['S'])
 
@@ -523,21 +523,32 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, arith_op:
     flags_new = (flags_new & ~mask) | (zero_flag << flag_bit_positions['Z'])
 
     # calc overflow flag
-    """
-    Truth Table Overflow flag
-
-    src     dest    res     expected    Notes                           a
+    """ Truth Table Overflow flag 
+    
+    (FOR ADD)
+    src     dest    res     expected    Notes                           
     0       0       0       0           (+a) + (+b) = (+c)
     0       0       1       1           (+a) + (+b) = (-c) (OVERFLOW)
     0       1       0       0           (+a) + (-b) = (+c) (if a > b)
-    0       1       1       0           (+a) + (-b) = (+c) (if b > a)
+    0       1       1       0           (+a) + (-b) = (-c) (if b > a)
     1       0       0       0           (-a) + (+b) = (+c) (if b > a) 
     1       0       1       0           (-a) + (+b) = (-c) (if a > b)
     1       1       0       1           (-a) + (-b) = (+c) (OVERFLOW)
     1       1       1       0           (-a) + (-b) = (-c)
 
+    (For SUB (dest - src) )
+    src     dest    res     expected    Notes                           
+    0       0       0       0           -(+a) + (+b) = (+c) (if b > a)
+    0       0       1       0           -(+a) + (+b) = (-c) (if a > b)
+    0       1       0       1           -(+a) + (-b) = (+c) (OVERFLOW)
+    0       1       1       0           -(+a) + (-b) = (-c) 
+    1       0       0       0           -(-a) + (+b) = (+c) 
+    1       0       1       1           -(-a) + (+b) = (-c) (OVERFLOW)
+    1       1       0       0           -(-a) + (-b) = (+c) (if a > b)
+    1       1       1       0           -(-a) + (-b) = (-c) (if b > a)
     """
     
+    """ DEBUG VARS
     src_sbin = bin(val_src)
     dest_sbin = bin(val_dest)
     res_sbin = bin(res)
@@ -547,21 +558,27 @@ def set_flags(flags: bytes, res: bytes, val_dest:bytes, val_src:bytes, arith_op:
     src_hex = hex(val_src)
     res_hex = hex(res)
     dest_hex = hex(val_dest)
+    """
     sign_bit_src = (usgn_src >> most_significant_bit) & 1
     sign_bit_dest = (usgn_dest >> most_significant_bit) & 1 
     sign_bit_res = (usgn_res >> most_significant_bit) & 1
     
     mask = 1 << flag_bit_positions['O']
-
     if arith_op % 2 == 0:
         overflow_flag = ((~sign_bit_src ^ sign_bit_dest) & (sign_bit_dest ^ sign_bit_res)) & 1 
     else:
         overflow_flag =  ((sign_bit_src^sign_bit_dest) & ~(sign_bit_src ^ sign_bit_res)) & 1
     
     flags_new = (flags_new & ~mask) | (int(overflow_flag) << flag_bit_positions['O'])
+    
+    """ Truth Table Auxilary Flag
+    5th bit and 4th bit
+    dest    src     res     Notes
+    01      01      10      Auxilary
+    10      00      01      
+    11      11
+    """
     mask = 1 << flag_bit_positions['A']
-    aux_bit = int(n_bytes/2) - 1
-
     auxilary_flag = ((val_src ^ val_dest ^ res) & 0b10000) != 0
     flags_new = (flags_new & ~mask) | (int(auxilary_flag) << flag_bit_positions['A'])
     
@@ -612,7 +629,6 @@ def arith_sim(src_decode:Address, dest_decode:Address, mem_layout:MemoryLayout80
 
     # All the add opcodes are even while sub opcodes are odd.
     # CMP (0b111) is a sub opcode without saving the value.
-    most_sig_bit = 8*dest_nbytes - 1
     is_add = (arith_opcode % 2) == 0
     #is_neg = ((old_reg_val>>most_sig_bit) & 1) == 1
     #is_add = (not is_add) if is_neg else is_add
@@ -626,14 +642,8 @@ def arith_sim(src_decode:Address, dest_decode:Address, mem_layout:MemoryLayout80
         src_val = src_val << 8 if dest_is_high else src_val
         new_val = (old_reg_val & ~(bit_mask))  + (new_val & bit_mask)
     
-    new_val_hex = bin(new_val)
-    #new_val = new_val if (new_val < 2**most_sig_val) else ((2**most_sig_val) - new_val)    
-    new_val_hex2= bin(new_val)
-    # Do not set value if it's a CMP operator (0b111). 
     if arith_opcode != 0b111:
         mem_layout.registers[dest_reg['pos']] = new_val & (2**(8*dest_nbytes) - 1)
-
-    
 
     mem_layout.flags, flags_str = set_flags(mem_layout.flags, new_val, old_reg_val, src_val , arith_opcode, dest_nbytes)
     reg_activity = ""
