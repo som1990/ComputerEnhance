@@ -6,7 +6,7 @@ Referenced from 8086 Family User Manual
 
 Supported
 Decoding complete flavors of : MOV, conditional Jumps, ADD, ADC, SUB, SBB, CMP
-Simming of non-memory MOVs. 
+Simming of non-memory MOVs, ADD, SUB, CMP. Conditional JUMPs
  
 Author: Soumitra Goswami 
 """
@@ -89,7 +89,7 @@ def decode_opcode(buf:bytes):
     return decoded_func
 
 def print_registers(registers:t.List[int])->str:
-    lables = ["AX", "BX", "CX", "DX", "SP", "BP", "SI", "DI", "ES", "CS", "SS", "DS"]
+    lables = ["AX", "BX", "CX", "DX", "SP", "BP", "SI", "DI", "ES", "CS", "SS", "DS", "IP"]
     output = "Final Registers: \n"
     for i, reg in enumerate(registers):
         output += f"\t\t{lables[i]}: {reg:#06x} ({reg}) \n"
@@ -112,10 +112,11 @@ def disassemble_CPU8086(bin_path: str)->str:
     count = 1
     out_op_text = f"; {filename}\n"
 
-    myLayout = utils_8086.MemoryLayout8086(registers=12*[0], flags=0b0)
+    myLayout = utils_8086.MemoryLayout8086(registers=13*[0], flags=0b0)
 
     while (count > -1):
         # unpacking as Unsigned char array for easier calculation.
+        buff_off = myLayout.registers[12]
         buffer = struct.unpack_from('2B', bin_data, offset=buff_off)
         
         # 1st Byte 
@@ -125,7 +126,7 @@ def disassemble_CPU8086(bin_path: str)->str:
         
         try:
             opcode_func = decode_opcode(m_byte_1)
-            output, buff_off, sim_out = opcode_func(bin_data, buff_off, myLayout)
+            output, sim_out = opcode_func(bin_data, myLayout)
             out_file += str(output) + '\n'
             out_op_text += sim_out
             print(sim_out)
@@ -138,8 +139,8 @@ def disassemble_CPU8086(bin_path: str)->str:
             break
         
         #count += 1
-
-        if buff_off >= len(bin_data):
+        # IP register
+        if myLayout.registers[12] >= len(bin_data):
             break
     print(f"End of Instructions at byte offset: {hex(buff_off)}")
 
@@ -158,8 +159,8 @@ import os
 
 dirname = os.path.dirname(__file__)
 parent = Path(dirname).parent
-path = os.path.join(dirname, 'listing_0046_add_sub_cmp')
-#path = os.path.join(dirname, "listing_0047_challenge_flags")
+#path = os.path.join(dirname, 'listing_0048_ip_register')
+path = os.path.join(dirname, "listing_0049_conditional_jumps")
 #path =os.path.join(parent,'HW3', 'HW_Lst_42_completionist')
 out_path = str(path) + '_out.asm'
 output, out_sim = disassemble_CPU8086(path)
