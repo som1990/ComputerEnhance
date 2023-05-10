@@ -1,0 +1,34 @@
+; listing_0052_memory_add_loop
+bits 16
+MOV DX, 6
+MOV BP, 1000
+MOV SI, 0
+MOV [BP + SI], SI
+ADD SI, 2
+CMP SI, DX
+JNE $-7
+MOV [BP + SI], SI
+ADD SI, 2
+CMP SI, DX
+JNE $-7
+MOV [BP + SI], SI
+ADD SI, 2
+CMP SI, DX
+JNE $-7
+MOV BX, 0
+MOV SI, 0
+MOV CX, [BP + SI]
+ADD BX, CX
+ADD SI, 2
+CMP SI, DX
+JNE $-9
+MOV CX, [BP + SI]
+ADD BX, CX
+ADD SI, 2
+CMP SI, DX
+JNE $-9
+MOV CX, [BP + SI]
+ADD BX, CX
+ADD SI, 2
+CMP SI, DX
+JNE $-9

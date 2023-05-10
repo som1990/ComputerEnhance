@@ -1,0 +1,29 @@
+; listing_0053_add_loop_challenge
+bits 16
+MOV DX, 6
+MOV BP, 1000
+MOV SI, 0
+MOV [BP + SI], SI
+ADD SI, 2
+CMP SI, DX
+JNE $-7
+MOV [BP + SI], SI
+ADD SI, 2
+CMP SI, DX
+JNE $-7
+MOV [BP + SI], SI
+ADD SI, 2
+CMP SI, DX
+JNE $-7
+MOV BX, 0
+MOV SI, DX
+SUB BP, 2
+ADD BX, [BP + SI]
+SUB SI, 2
+JNE $-5
+ADD BX, [BP + SI]
+SUB SI, 2
+JNE $-5
+ADD BX, [BP + SI]
+SUB SI, 2
+JNE $-5
