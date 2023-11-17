@@ -53,8 +53,8 @@ def gen_haversine_data(num_vals: int, seed:int, filepath: str, bin_path: str):
 
 
 
-filepath = ".\\haversine_data_100000.json"
-bin_path = ".\\haversine_data_100000.bin"
+filepath = ".\\haversine_data_10000.json"
+bin_path = ".\\haversine_data_10000.bin"
 seed1= 26346346346346
 seed2= 34634234
-gen_haversine_data(100000, seed2, filepath, bin_path)
+gen_haversine_data(10000, seed2, filepath, bin_path)
